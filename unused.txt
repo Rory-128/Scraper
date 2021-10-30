@@ -1,0 +1,29 @@
+def request_coms_traders(data):
+    temp_data = []
+    for line in data:
+        try: 
+            k = requests.get(line).text
+            soup=BeautifulSoup(k,'html.parser')
+            spans = soup.find_all('span', attrs={'id':'productPrice'})
+            for span in spans:
+                temp_data.append(get_string(span.string))
+        except:
+            temp_data.append(line)
+
+    return temp_data
+
+
+uno_class_name = "money exclGST"
+mcg_class_name = "product-price__price product-price__price-product-template"
+ofw_class_name = "taxmoney"
+opd_class_name = "price-col"
+#commercialtraders_class_name = "product_title"
+
+
+#hurdleys - not working
+#hurdleys_refined = refine_data(web_links, 'Hurdleys')
+#hurdleys_data = woorequest(hurdleys_refined)
+
+#Commercial Traders
+commercialtraders_refined = refine_data(web_links, 'Commercial Traders')
+coms_data = request(commercialtraders_refined, el = "span", config = {'id':'productPrice'})

@@ -1,0 +1,1 @@
+C:\python27\python.exe C:\Users\PC\Desktop\Scraper\scraper.py %*
