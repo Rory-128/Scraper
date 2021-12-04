@@ -24,7 +24,7 @@ def woorequest(data):
         else:
             try:
                 r = s.get(line)
-                price = r.html.find('span.woocommerce-Price-amount.amount bdi')[0].full_text
+                price = r.html.find('span.woocommerce-Price-amount.amount bdi')[1].full_text
                 print(price)
                 temp_data.append(price)
             except:
@@ -32,22 +32,16 @@ def woorequest(data):
     return temp_data
 
 def request(data):
-    config2 = {"class": "product-price__price product-price__price-product-template product-price__sale product-price__sale--single"}
-    config = {"class": "price-col"}
-    el = "div"
+    config = {"class": "woocommerce-Price-amount amount"}
+    el = "span"
     temp_data = []
     for line in data:
         print(line)
         k = requests.get(line).text
         soup=BeautifulSoup(k,'html.parser')
         productlist = soup.find_all(el, config)
-        print(type(productlist))
+        print((productlist))
         s = (get_string(productlist))
-        if s == "":
-            print("none")
-            productlist = soup.find_all(el, config2)
-            s = (get_string(productlist))
-        temp_data.append(s)
     return temp_data
 
 test_data = open("testdata.txt", "r")

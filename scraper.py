@@ -16,6 +16,8 @@ import random
 import string
 import emails
 import subprocess
+from emails import emailer
+from comparisons import compare
 
 start = time.time()
 today = date.today()
@@ -118,6 +120,21 @@ def woorequest(data):
                 temp_data.append('err')
     return temp_data
 
+def direct_office_woorequest(data):
+    temp_data = []
+    s = HTMLSession()
+    for line in data:
+        if line == 'n/a' or line == "POA":
+            temp_data.append(0)
+        else:
+            try:
+                r = s.get(line)
+                price = r.html.find('span.woocommerce-Price-amount.amount bdi')[1].full_text
+                temp_data.append(price)
+            except:
+                temp_data.append('err')
+    return temp_data
+
 def request_alt(data, brand):
     config = {"id": configdict[brand]}
     el = "span"
@@ -182,9 +199,11 @@ def refine_data(dataframe, col): #takes dataframe and a given column and returns
 #uno
 uno_refined = refine_data(web_links, 'Uno Furniture')
 uno_data = request(uno_refined, "uno")
+uno_data = [str(i) for i in uno_data]
 #mcg
 mcg_refined = refine_data(web_links, 'McGreals')
 mcg_data = mcg_request(mcg_refined, "mcg")
+mcg_data = [str(i) for i in mcg_data]
 #OFW
 ofw_refined = refine_data(web_links, 'Office Furniture Warehouse')
 ofw_data = request(ofw_refined, "ofw")
@@ -198,9 +217,10 @@ opd_data = [i[:i.find(".") + 3] for i in opd_data]
 #systems
 sys_refined = refine_data(web_links, 'Systems')
 systems_data = woorequest(sys_refined)             # uses other woorequest function
+systems_data = [str(i) for i in systems_data]
 #directoffice 
 directoffice_refined = refine_data(web_links, 'Direct Office')
-directoffice_data = woorequest(directoffice_refined)
+directoffice_data = direct_office_woorequest(directoffice_refined)
 #kds
 kds_refined = refine_data(web_links, 'Kiwi Dragon Supplies')
 kds_data = request(kds_refined, "kds")
@@ -209,6 +229,7 @@ kds_data = [i[:i.find(".") + 3] for i in kds_data]
 #Commercial Traders
 commercialtraders_refined = refine_data(web_links, 'Commercial Traders')
 coms_data = request_alt(commercialtraders_refined, "coms")         # uses other request_alt function
+coms_data = [str(i) for i in coms_data]
 #Office Products Online
 opo_refined = refine_data(web_links, 'Office Products Online')
 opo_data = request_alt2(opo_refined, "opo")         # uses other request_alt2 function
@@ -220,10 +241,14 @@ d = {'Product':products, 'McGreals': mcg_data, 'Uno Furniture': uno_data, 'Offic
 'Kiwi Dragon Supplies':kds_data, 'Office Products Depot': opd_data, 'Office Products Online': opo_data,'Direct Office':directoffice_data, 'Commercial Traders': coms_data, 'Systems Commercial': systems_data}
 
 df = pd.DataFrame(data=d)
+df = df.applymap(str)
 set_with_dataframe(worksheet, df, row=1, col=1,) #-> THIS EXPORTS YOUR DATAFRAME TO THE GOOGLE SHEET
 # starting time
 end = time.time()
 
+#comparison_df = compare()   ### compare dataframe to previous dates
+emailer(df)
+
 # total time taken
 print("Script ran in :", end-start, "seconds")
-subprocess.call("emails.py", shell=True)
+#subprocess.call("emails.py", shell=True)
