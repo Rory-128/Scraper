@@ -23,11 +23,11 @@ start = time.time()
 today = date.today()
 # dd/mm/YY
 d1 = today.strftime("%d/%m/%Y")
-char_set = string.ascii_uppercase + string.digits
+char_set = "_" + ''.join(random.sample((string.ascii_uppercase + string.digits  ) * 3, 3))
 
 configdict = {
   "uno": "money exclGST",
-  "mcg": "product-price__price product-price__price-product-template",
+  "mcg": "product-price__price product-price__price-product-template-split-view",
   "ofw": "taxmoney",
   "opd": "price-col",
   "kds": "product-single__price",
@@ -41,7 +41,7 @@ scopes = [
 ]
 
 credentials = Credentials.from_service_account_file(
-    "C:\\Users\\PC\\Desktop\\Scraper\\creds.json",
+    "\\\MCGREALSSERVER\\Folder Redirection\\Rory\\Desktop\\Scraper-main\\creds.json",
     scopes=scopes
 )
 
@@ -52,7 +52,7 @@ web_links = pd.DataFrame(data_source.get_all_records())
 
 #ws = gc.open("Comps").worksheet("Data")
 sh = gc.open("Comps")
-worksheet = sh.add_worksheet(title= d1 + "_" + ''.join(random.sample(char_set * 3, 3)), rows="100", cols="20")
+worksheet = sh.add_worksheet(title= d1 + char_set, rows="100", cols="20")
 
 #sys.exit()
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'}
@@ -83,7 +83,7 @@ def request(data, brand):
 
 def mcg_request(data, brand):
     config = {"class": configdict[brand]}
-    config2 = {"class": "product-price__price product-price__price-product-template product-price__sale product-price__sale--single"}
+    config2 = {"class": "product-price__price product-price__price-product-template-split-view product-price__sale product-price__sale--single"}
     el = "span"
     temp_data = []
     for line in data:
@@ -174,7 +174,7 @@ def request_alt2(data, brand):
     return temp_data
 
 def opd_request(data):
-    config = {"class": "price-col"}
+    config = {"class": "prices"}
     el = "div"
     temp_data = []
     for line in data:
@@ -188,7 +188,7 @@ def opd_request(data):
                 s = (get_string(productlist))
                 temp_data.append(s)
             except:
-                temp_data.append("no connection")
+                temp_data.append(0)
     return temp_data
 
 def refine_data(dataframe, col): #takes dataframe and a given column and returns a list of the column values
@@ -213,6 +213,7 @@ ofw_data = [i[:i.find(".") + 3] for i in ofw_data]
 opd_refined = refine_data(web_links, 'Office Products Depot')
 opd_data = opd_request(opd_refined)
 opd_data = [str(i) for i in opd_data]
+opd_data = [i[1:] for i in opd_data]
 opd_data = [i[:i.find(".") + 3] for i in opd_data]
 #systems
 sys_refined = refine_data(web_links, 'Systems')
@@ -247,7 +248,7 @@ set_with_dataframe(worksheet, df, row=1, col=1,) #-> THIS EXPORTS YOUR DATAFRAME
 end = time.time()
 
 #comparison_df = compare()   ### compare dataframe to previous dates
-emailer(df)
+#emailer(df) // this line sends the spreadsheet to rory@mcg email
 
 # total time taken
 print("Script ran in :", end-start, "seconds")
